@@ -12,7 +12,7 @@ public class Main {
         int rows = 3;
         int cols = 3;
 
-        // gather info here if wanted
+        /*// gather info here if wanted
         Heuristic heuristic = Heuristic.H2;
         int casesToRun = 1000;
         int depth = 16;
