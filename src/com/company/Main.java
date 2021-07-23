@@ -9,14 +9,15 @@ public class Main {
         System.out.println("CS 4200 Project 1");
 
         boolean keepRunning = true;
-
-        /*// gather info here if wanted
-        Heuristic heuristic = Heuristic.H2;
-        int casesToRun = 100;
-        int depth = 4;
         int rows = 3;
         int cols = 3;
+
+        // gather info here if wanted
+        Heuristic heuristic = Heuristic.H2;
+        int casesToRun = 1000;
+        int depth = 16;
         SlidePuzzleDataGatherer.analyzeSlidePuzzleSolving(heuristic, casesToRun, depth, rows, cols);
+        // turn off keep running as we just want to gather data nothing else
         keepRunning = false;
         /**/
 
@@ -34,7 +35,7 @@ public class Main {
             {
                 case 1:
                     // run single test puzzle here
-                    RunSingleTestPuzzle();
+                    RunSingleTestPuzzle(rows, cols);
                     break;
                 case 3:
                     keepRunning = false;
@@ -45,14 +46,17 @@ public class Main {
     }
 
     /**
+     * @param rows number of rows in the puzzle to create
+     * @param cols number of cols in puzzle to create
      * Runs a single test puzzle for a slider puzzle
      */
-    public static void RunSingleTestPuzzle()
+    public static void RunSingleTestPuzzle(int rows, int cols)
     {
-        int[][] initialState = getFirstState();
+        // works for any rows * cols except 1 x 1 because the random generation will infinitely loop
+        int[][] initialState = getFirstState(rows, cols);
         // print initial state
 
-        System.out.println(Helpers.arrayToString(initialState));
+        System.out.println("Puzzle:\n" + Helpers.arrayToString(initialState));
 
         // create the queue
         SlidePuzzleQueue sliderPuzzleQueue = new SlidePuzzleQueue();
@@ -71,6 +75,14 @@ public class Main {
         while(!solutionFound)
         {
             curNode = sliderPuzzleQueue.popNode();
+
+            // check if we recieved null as first node meaning no nodes left to check
+            if(curNode == null)
+            {
+                System.out.println("Solution not found");
+                return;
+            }
+
             // if we pop a solved node then we solved our puzzle
             if(curNode.isSolved)
             {
@@ -105,15 +117,18 @@ public class Main {
         // get the solved path of the node
         ArrayList<Node> solvedPath = Helpers.getSolvedPath(curNode);
 
+        System.out.println("Solution Found");
         printSolvedPath(solvedPath);
         System.out.println("Search Cost: " + sliderPuzzleQueue.getTotalNodesAdded());
     }
 
     /**
      * gets the first node for the program
+     * @param rows number of rows for first state
+     * @param cols number of cols for first state
      * @return the first state of a slide puzzle
      */
-    public static int[][] getFirstState()
+    public static int[][] getFirstState(int rows, int cols)
     {
         // get the user selection for how to generate first state
         String message = "Select input Method\n";
@@ -121,32 +136,39 @@ public class Main {
         message += "[2] File";
         int selection = Helpers.handleIntegerInput(message, 1, 2);
 
-        // TODO: make the cols and rows dynamic from getFirstState params
-        int[][] firstState = new int[3][3];
+        int[][] firstState = new int[rows][cols];
 
         // either get init state from user or generate a random one
         boolean validState = false;
-        while(!validState)
+        switch(selection)
         {
-            switch(selection)
-            {
-                // generate a random state
-                case 1:
-                    // TODO: make depth a user entry
-                    firstState = Helpers.generateRandomPuzzle(3, 3, 4);
+            // generate a random state
+            case 1:
+                // get depth from user
+                message = "Enter Solution Depth (2-20):";
+                int depth = Helpers.handleIntegerInput(message, 2, 20);
+
+                while(!validState)
+                {
+                    firstState = Helpers.generateRandomPuzzle(rows, cols, depth);
                     validState = Helpers.isValidState(firstState);
-                    break;
-                // ask user for a initial state
-                case 2:
+                }
+                break;
+            // ask user for a initial state
+            case 2:
+                while(!validState)
+                {
                     System.out.println("Please enter the initial state:");
-                    firstState = Helpers.getInitialStateFromUser(3, 3);
+                    firstState = Helpers.getInitialStateFromUser(rows, cols);
                     validState = Helpers.isValidState(firstState);
                     if(!validState)
                     {
                         System.out.println("Please enter a solvable slide puzzle.");
                     }
-                    break;
-            }
+                }
+                // print an empty line
+                System.out.println();
+                break;
         }
 
         // return initial state
@@ -160,7 +182,7 @@ public class Main {
     public static Heuristic getHeuristicStyle()
     {
         // read the heuristic wanted by user
-        String message = "Select H function\n";
+        String message = "Select H function:\n";
         message += "[1] H1\n";
         message += "[2] H2";
         int selection = Helpers.handleIntegerInput(message, 1, 2);

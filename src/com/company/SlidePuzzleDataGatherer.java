@@ -20,6 +20,8 @@ public class SlidePuzzleDataGatherer
         long totalTimeSpentInMs = 0;
         int cases = casesToRun;
 
+        ArrayList<Node> baseNodesSeen = new ArrayList<Node>();
+
         // go through every case
         while(casesToRun > 0)
         {
@@ -38,16 +40,36 @@ public class SlidePuzzleDataGatherer
             //array list to hold all seen nodes
             ArrayList<Node> nodesSeen = new ArrayList<Node>();
 
-            // solving of slide puzzle starts here
-            long startTime = Instant.now().toEpochMilli();
-
             // create base node with initial state
             Node baseNode = new Node(firstState, heuristic, -1, null);
+
+            // check if base node has already been seen
+            boolean baseNodeAlreadyUsed = false;
+            for(int i = 0; i < baseNodesSeen.size(); i++)
+            {
+                if(baseNodesSeen.get(i).isEqualTo(baseNode))
+                {
+                    baseNodeAlreadyUsed = true;
+                    break;
+                }
+            }
+
+            // if we have already used this node break this loop and lower casesToRun and cases total
+            if(baseNodeAlreadyUsed)
+            {
+                casesToRun -= 1;
+                cases -= 1;
+                continue;
+            }
+
             Node curNode = null;
             sliderPuzzleQueue.addNode(baseNode);
             nodesSeen.add(baseNode);
 
             boolean solutionFound = false;
+
+            // solving of slide puzzle starts here
+            long startTime = Instant.now().toEpochMilli();
 
             // keep running until a solution is found
             while(!solutionFound)
@@ -93,6 +115,7 @@ public class SlidePuzzleDataGatherer
             // if this was a puzzle with the correct depth
             if(solvedPath.size() - 1 == depth)
             {
+                baseNodesSeen.add(baseNode);
                 casesToRun -= 1;
                 totalNodesGenerated += sliderPuzzleQueue.getTotalNodesAdded();
                 totalTimeSpentInMs += (endTime - startTime);

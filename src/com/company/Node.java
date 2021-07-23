@@ -218,6 +218,7 @@ public class Node
 
     /**
      * returns the state in string form
+     * @return string form of the array
      * */
     public String toString()
     {
